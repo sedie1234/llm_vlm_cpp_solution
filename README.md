@@ -63,3 +63,24 @@ $  cd cpp_solution/build
 $ ./vlm_solution/vlm_cpp_solution [vision_encoder.onnx] [token_embedding.onnx] [decoder.onnx] [tokenizer.json] [image_path]
 $ ./vlm_solution/vlm_cpp_solution ../vlm/model/vision_encoder.onnx ../vlm/model/token_embedding.onnx ../vlm/model/decoder.onnx ../vlm/merged_tokenizer/tokenizer.json ../assets/test_image.png
 ```
+
+## directory tree
+```
+.
+├── README.md
+├── cpp_solution
+│   ├── CMakeLists.txt
+│   ├── assets
+│   ├── build
+│   ├── llm
+│   ├── llm_solution
+│   ├── merge_tokens.py
+│   ├── onnxruntime-linux-x64-1.21.0
+│   ├── onnxruntime-linux-x64-1.21.0.tgz
+│   ├── tokenizers-cpp
+│   ├── vlm
+│   └── vlm_solution
+├── model_convert
+│   └── model_converter.py
+└── venv_cm
+```
