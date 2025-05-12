@@ -27,7 +27,7 @@
 #define BATCH_SIZE          1
 #define KEY_VALUE_NUM       2
 #define IMAGE_TOKEN_INDEX   151646
-#define USE_SAMPLING        false
+#define USE_SAMPLING        true
 #define TOP_P               0.99f
 
 
