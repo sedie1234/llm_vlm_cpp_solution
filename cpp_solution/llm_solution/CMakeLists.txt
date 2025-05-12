@@ -4,7 +4,8 @@ project(llm_cpp_solution LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 
 # llm cpp solution
-add_executable(llm_cpp_solution llm.cpp)
+add_executable(llm_cpp_solution llm.cpp
+                                ../utils/utils.cpp)
 target_include_directories(llm_cpp_solution PRIVATE 
                             ${TOKENZIER_CPP_PATH}/include
                             ${ONNXRUNTIME_DIR}/include)

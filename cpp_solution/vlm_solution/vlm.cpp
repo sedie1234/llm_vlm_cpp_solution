@@ -11,6 +11,8 @@
 #include <numeric>
 #include <cmath>
 
+#include "../utils/utils.h"
+
 // definitions
 // #define TEST_PROMPT "<|im_start|>system\nYou are a helpful assistant."\
 //                     "<|im_end|>\n<|im_start|>user\nWhere do you think this image is from?"\
@@ -78,6 +80,10 @@ std::string decode(Arguments& args, Ort::Session& text_emb_session,
     Ort::Session& decoding_session, Ort::AllocatorWithDefaultOptions& allocator, 
     Ort::MemoryInfo& mem_info, NextInput* first_input, tokenizers::Tokenizer& tok);
 
+// global variables
+MyTimer TTFT;
+MyTimer TPOT;
+std::vector<double> TPOP_log;
 
 // main
 int main(int argc, char** argv) {
@@ -86,6 +92,9 @@ int main(int argc, char** argv) {
                   << "<decoder.onnx> <tokenizer.json> <image_path>" << std::endl;
         return 1;
     }
+
+    // time check
+    TTFT.start();
 
     std::string image_encoder_path = argv[1];
     std::string text_encoder_path = argv[2];
@@ -116,21 +125,33 @@ int main(int argc, char** argv) {
     Ort::MemoryInfo mem_info = Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
     Ort::AllocatorWithDefaultOptions allocator;
 
-    // 모델 로드
+    // open session
     Ort::Session image_emb_session(env, image_encoder_path.c_str(), session_options);
     Ort::Session text_emb_session(env, text_encoder_path.c_str(), session_options);
     Ort::Session decoding_session(env, decoder_path.c_str(), session_options);
 
-    // Prefill 단계 실행
+    // Prefill
     NextInput first_input;
     prefill(args, image_emb_session, text_emb_session, decoding_session, allocator, mem_info, &first_input, *tok);
     std::cout << "prefill done" << std::endl;
 
-    // Decode 단계 실행
+    TTFT.stop();
+    TPOT.start();
+
+    // Decode
     std::string result = decode(args, text_emb_session, decoding_session, allocator, mem_info, &first_input, *tok);
 
-    // 출력
+    // print result
     std::cout << "Final generated text: " << result << std::endl;
+
+    // print time and memory usage
+    double ttot_time = TTFT.elapsed_us();
+    std::cout << "\n\nTime to First Token : " << ttot_time / 1000000.0 << " sec" << std::endl;
+
+    double tpop_time = computeAverage(TPOP_log);
+    std::cout << "Average time per token : " << tpop_time / 1000000.0 << " sec" << std::endl;
+
+    std::cout << "Peak memory usage : " << getPeakRSS() / 1024.0 / 1024.0 << " MB" << std::endl;
 
     return 0;
 }
@@ -637,6 +658,11 @@ std::string decode(Arguments& args, Ort::Session& text_emb_session,
             first_input->generated_tokens.push_back(next_token_id);
         }
 
+        // time check
+        TPOT.stop();
+        TPOP_log.push_back(TPOT.elapsed_us());
+        TPOT.start();
+
         // check EOS
         if (first_input->generated_tokens.back() == EOS_TOKEN_ID) break;
 
@@ -659,6 +685,10 @@ std::string decode(Arguments& args, Ort::Session& text_emb_session,
         );
 
     }
+
+    // time check 
+    TPOT.stop();
+    TPOP_log.push_back(TPOT.elapsed_us());
 
     std::vector<int> generated_ids;
     generated_ids.reserve(first_input->generated_tokens.size());

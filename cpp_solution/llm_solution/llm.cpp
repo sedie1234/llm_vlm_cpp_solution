@@ -6,6 +6,8 @@
 #include <string>
 #include <vector>
 
+#include "../utils/utils.h"
+
 // definitions
 #define TEST_PROMPT "<bos><start_of_turn>user\nYou are a helpful assistant."\
                     "\n\nWrite me a short poem about Machine Learning."\
@@ -17,9 +19,14 @@
 #define BATCH_SIZE      1
 #define KEY_VALUE_NUM   1
 
-
+// functions
 std::string LoadBytesFromFile(const std::string& path);
 int64_t Argmax(const float* data, int64_t size);
+
+// global variables
+MyTimer TTFT;
+MyTimer TPOT;
+std::vector<double> TPOP_log;
 
 int main(int argc, char** argv){
 
@@ -30,6 +37,9 @@ int main(int argc, char** argv){
         printf("Usage : ./run_llm <model_path> <tokenizer_path> \n");
         return -1;
     }
+
+    // time check
+    TTFT.start();
 
     std::string model_path(argv[1]);
     std::string tokenizer_path(argv[2]);
@@ -169,6 +179,16 @@ int main(int argc, char** argv){
         // Append and continue
         generated_tokens.push_back(next_token_id);
         
+        //time check
+        if(i==0){
+            TTFT.stop();
+            TPOT.start();
+        }else{
+            TPOT.stop();
+            TPOP_log.push_back(TPOT.elapsed_us());
+            TPOT.start();
+        }   
+
         // Stop if <eos>
         if (next_token_id == EOS_TOKEN_ID) break;
          
@@ -192,6 +212,9 @@ int main(int argc, char** argv){
         
     }
 
+    TPOT.stop();
+    TPOP_log.push_back(TPOT.elapsed_us());
+
     std::vector<int> generated_ids;
     generated_ids.reserve(generated_tokens.size());
     // convert int64_t to int
@@ -207,9 +230,16 @@ int main(int argc, char** argv){
 
     // 4. decode output tokens, print result
     std::string decoded_output = tok->Decode(generated_ids);
-    std::cout << "Answer : " << decoded_output << std::endl;
+    std::cout << "Answer : \n" << decoded_output << std::endl;
 
+    // 5. print time and memory usage
+    double ttot_time = TTFT.elapsed_us();
+    std::cout << "\n\nTime to First Token : " << ttot_time / 1000000.0 << " sec" << std::endl;
 
+    double tpop_time = computeAverage(TPOP_log);
+    std::cout << "Average time per token : " << tpop_time / 1000000.0 << " sec" << std::endl;
+
+    std::cout << "Peak memory usage : " << getPeakRSS() / 1024.0 / 1024.0 << " MB" << std::endl;
     return 0;
 }
 

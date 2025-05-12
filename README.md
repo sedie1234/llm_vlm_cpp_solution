@@ -1,4 +1,7 @@
 ## 0. requirements
+- ubuntu > 20.04
+- cmake > 3.16 (개발환경 : 3.26)
+- c++17
 - onnxruntime > 1.19.0 (개발환경 : 1.21.0)
 ```
 $ cd cpp_colution
@@ -78,6 +81,7 @@ $ ./vlm_solution/vlm_cpp_solution ../vlm/model/vision_encoder.onnx ../vlm/model/
 │   ├── onnxruntime-linux-x64-1.21.0
 │   ├── onnxruntime-linux-x64-1.21.0.tgz
 │   ├── tokenizers-cpp
+│   ├── utils
 │   ├── vlm
 │   └── vlm_solution
 ├── model_convert

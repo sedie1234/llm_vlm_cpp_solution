@@ -10,7 +10,8 @@ set(ONNXRUNTIME_DIR "${CMAKE_SOURCE_DIR}/onnxruntime-linux-x64-1.21.0")
 find_package(OpenCV REQUIRED)
 
 # llm cpp solution
-add_executable(vlm_cpp_solution vlm.cpp)
+add_executable(vlm_cpp_solution vlm.cpp
+                                ../utils/utils.cpp)
 target_include_directories(vlm_cpp_solution PRIVATE 
                             ${TOKENZIER_CPP_PATH}/include
                             ${ONNXRUNTIME_DIR}/include)
